@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="mystyle_Agent_1.css">
+    <title>Highlights+RD - Agent1</title>
+    <h1 id="header">Agent - Video & Graph Explanations</h1>
+    <script src=https://cdn.jsdelivr.net/npm/chart.js@3.5.1/dist/chart.min.js></script>
+
+</head>
+
+<body>
+    <video id="video1" width="320" height="200" controls>
+        <source src = "CL_RL_rand2.mp4" type="video/mp4">
+         Your browser does not support the video tag.
+     </video>
+
+
+    <!-- Create butons to display chart-->
+    <div id="mychart" style="display:none;">
+        <div id="chart_div" style="width:900px; height: 610px;"></div>
+    </div>
+
+    <div class=buttons>
+        <button id="button1" onclick="chartIt(num_video = 1,case_number=1 ,time_stemp = 6,bar='bar'), goTo (num_video = 1,id = 'button1',sec = 1.931);">Scenario 1 </button>
+        <button id="button2" onclick="chartIt(num_video = 1,case_number=2,time_stemp = 7,bar='bar'), goTo (num_video = 1,id = 'button2',sec = 8);">Scenario 2</button>
+        <button id="button3" onclick="chartIt(num_video = 1,case_number=3,time_stemp = 8,bar='bar'),goTo (num_video = 1,id = 'button3',sec = 14.4);">Scenario 3</button>
+        <button id="button4" onclick="chartIt(num_video = 1,case_number=4,time_stemp = 9,bar='bar'), goTo (num_video = 1,id = 'button4',sec = 21.5) ;">Scenario 4</button>
+        <button id="button5" onclick="chartIt(num_video = 1,case_number=5,time_stemp = 10,bar='bar'), goTo (num_video = 1,id = 'button5',sec = 27.187);">Scenario 5</button>
+    </div>
+
+    <div class="text">
+        <h1 id=video_1_case></h1>
+        <h1 id=introduction_1></h1>
+        <h1 id="action_1"></h1>
+    </div>
+
+    <!--Create the BAR graph-->
+    <div class='Chart'>
+        <canvas id='bar'></canvas>
+    </div>
+
+
+</body>
+
+<!-- Starting the js code-->
+
+
+<script>
+    function goTo(num_video, id, sec) {
+        if (num_video == 1) {
+            var jumplink = document.getElementById(id),
+                myvideo = document.getElementById('video1');
+            event.preventDefault();
+            myvideo.play();
+            myvideo.pause();
+            myvideo.currentTime = sec;
+            myvideo.pause();
+        }
+    }
+
+
+    async function chartIt(num_video, case_number, time_stemp, bar) {
+
+        //var sec = myVideo.currentTime
+        const data = await getData(num_video, time_stemp);
+        console.log(data)
+        const ctx = document.getElementById(bar).getContext('2d');
+        const myChart = new Chart(ctx, {
+
+            type: 'bar',
+            data: {
+                labels: data.xs_action,
+                datasets: [{
+                        label: ['Right Lane Component'],
+                        data: data.ys_H1a,
+                        backgroundColor: ['rgba(255, 99, 132, 0.2)', ],
+                        borderColor: ['rgba(255, 99, 132, 1)', ],
+                        borderWidth: 1,
+                        stack: 'Stack 0',
+                    },
+
+                    {
+                        label: ['High Speed Component'],
+                        data: data.ys_H2a,
+                        backgroundColor: ['rgba(54, 162, 235, 0.2)', ],
+                        borderColor: ['rgba(54, 162, 235, 1)', ],
+                        borderWidth: 1,
+                        stack: 'Stack 0',
+                    },
+
+                    {
+                        label: ['Change Lane Component'],
+                        data: data.ys_H3a,
+                        backgroundColor: ['rgba(255, 206, 86, 0.2)', ],
+                        borderColor: ['rgba(255, 206, 86, 1)', ],
+                        borderWidth: 1,
+                        stack: 'Stack 0',
+                    },
+
+                ],
+
+            },
+            options: {
+                scales: {
+                    x: {
+                        grid: {
+                            display: false,
+                        },
+
+                        ticks: {
+                            color: 'blue',
+                        }
+                    },
+                    y: {
+                        grid: {
+                            display: false,
+                        },
+                        ticks: {
+                            stepSize: 0.5,
+                        }
+                    }
+                }
+            }
+
+        });
+
+        const all_buttons1 = ['button1', 'button2', 'button3', 'button4', 'button5']
+        for (let i = 0; i < all_buttons1.length; i++) {
+            id_of_button = all_buttons1[i]
+            document.getElementById(id_of_button).addEventListener('click', e => {
+                myChart.destroy();
+            });
+        }
+
+
+
+        // time_stemp = the time in wich the action changed!
+        async function getData(num_video, time_stemp) {
+            // var x = document.getElementById("secound ").value;
+            const xs_action = [];
+
+            //const ys_2_secound = [];
+            const max_value = [];
+            const ys_H1a = [];
+            const ys_H2a = [];
+            const ys_H3a = [];
+            var response = await fetch('CL_RL_Exp4_CRD.csv')
+
+            const data = await response.text();
+
+
+            const row = data.split('\n').slice(1);
+
+
+
+            row.forEach(elt => {
+                const row = elt.split(',');
+
+                const time = row[0];
+
+                if (time == time_stemp) {
+                    // for the next row:
+
+                    H1_Q1 = row[1];
+                    H1_Q2 = row[2];
+                    H1_Q3 = row[3];
+                    H1_Q4 = row[4];
+                    H1_Q5 = row[5];
+                    H2_Q1 = row[6];
+                    H2_Q2 = row[7];
+                    H2_Q3 = row[8];
+                    H2_Q4 = row[9];
+                    H2_Q5 = row[10];
+                    H3_Q1 = row[11];
+                    H3_Q2 = row[12];
+                    H3_Q3 = row[13];
+                    H3_Q4 = row[14];
+                    H3_Q5 = row[15];
+
+
+                    choosen_action = parseInt(row[22]);
+                    secound_choosen_action = parseInt(row[24]);
+                    //choosen_action = parseInt(row[21]);
+
+
+                    // var text_choosen_Action = "no"
+
+
+                    if (choosen_action == 1) {
+                        text_choosen_Action = "left lane ";
+                        head1 = [H1_Q1, H2_Q1, H3_Q1]
+                    }
+                    if (choosen_action == 2) {
+                        text_choosen_Action = "idle ";
+                        head1 = [H1_Q2, H2_Q2, H3_Q2]
+                    }
+                    if (choosen_action == 3) {
+                        text_choosen_Action = "right lane ";
+                        head1 = [H1_Q3, H2_Q3, H3_Q3]
+                    }
+                    if (choosen_action == 4) {
+                        text_choosen_Action = "faster ";
+                        head1 = [H1_Q4, H2_Q4, H3_Q4]
+                    }
+                    if (choosen_action == 5) {
+                        text_choosen_Action = "slower ";
+                        head1 = [H1_Q5, H2_Q5, H3_Q5]
+                    }
+
+                    if (secound_choosen_action == 1) {
+                        secound_text_choosen_Action = "left lane ";
+                        head2 = [H1_Q1, H2_Q1, H3_Q1]
+                    }
+                    if (secound_choosen_action == 2) {
+                        secound_text_choosen_Action = "idle ";
+                        head2 = [H1_Q2, H2_Q2, H3_Q2]
+                    }
+                    if (secound_choosen_action == 3) {
+                        secound_text_choosen_Action = "right lane ";
+                        head2 = [H1_Q3, H2_Q3, H3_Q3]
+                    }
+                    if (secound_choosen_action == 4) {
+                        secound_text_choosen_Action = "faster ";
+                        head2 = [H1_Q4, H2_Q4, H3_Q4]
+                    }
+                    if (secound_choosen_action == 5) {
+                        secound_text_choosen_Action = "slower ";
+                        head2 = [H1_Q5, H2_Q5, H3_Q5]
+                    }
+
+                    document.getElementById('video_1_case').innerHTML = "Scenario " + case_number;
+                    document.getElementById('introduction_1').innerHTML = "The choosen action is: ";
+                    document.getElementById('action_1').innerHTML = text_choosen_Action;
+
+
+
+                    xs_action.push(text_choosen_Action, secound_text_choosen_Action);
+                    ys_H1a.push(head1[0], head2[0])
+                    ys_H2a.push(head1[1], head2[1])
+                    ys_H3a.push(head1[2], head2[2])
+                    max_value.push(choosen_action)
+                        //console.log(head1, head1[0], head2, head2[0])
+
+
+
+
+                }
+                //console.log(xs_action,
+                //  ys_H1a,
+                //  ys_H2a,
+                //  ys_H3a)
+
+            });
+            return {
+                max_value,
+                xs_action,
+                ys_H1a,
+                ys_H2a,
+                ys_H3a
+            };
+        }
+    }
+</script>
+
+
+</html>
